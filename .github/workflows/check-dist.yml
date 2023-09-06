@@ -21,10 +21,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set Node.js 16.x
-        uses: actions/setup-node@v3.6.0
+        uses: actions/setup-node@v3.8.1
         with:
           node-version: 16.x
 
@@ -42,6 +42,12 @@ jobs:
             exit 1
           fi
         id: diff
+
+      - name: Setup go-task
+        uses: ./.
+
+      - name: Test go-task
+        run: task --version
 
       # If index.js was different than expected, upload the expected version as an artifact
       - uses: actions/upload-artifact@v3

@@ -1,21 +1,24 @@
 const core = require('@actions/core');
-const wait = require('./wait');
+const tc = require('@actions/tool-cache');
 
-
-// most @actions toolkit packages have async methods
 async function run() {
-  try {
-    const ms = core.getInput('milliseconds');
-    core.info(`Waiting ${ms} milliseconds ...`);
+    try {
+        const taskVersion = core.getInput('task-version');
+        const dlUrl = `https://github.com/go-task/task/releases/download/v${taskVersion}/task_linux_amd64.tar.gz`;
 
-    core.debug((new Date()).toTimeString()); // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
-    await wait(parseInt(ms));
-    core.info((new Date()).toTimeString());
+        core.info(`Downloading go-task/task version ${taskVersion} from ${dlUrl}`)
+        const taskDlPath = await tc.downloadTool(dlUrl);
 
-    core.setOutput('time', new Date().toTimeString());
-  } catch (error) {
-    core.setFailed(error.message);
-  }
+        const extractedFolder = await tc.extractTar(taskDlPath);
+        core.debug(`Extracted go-task/task to ${extractedFolder}`);
+
+        const cachedPath = await tc.cacheDir(extractedFolder, "task", taskVersion);
+        core.debug(`cache-path ${cachedPath}`);
+        core.addPath(cachedPath);
+    } catch (error) {
+        core.setFailed(error.message);
+    }
 }
 
-run();
+run()
+    .catch(console.error);
